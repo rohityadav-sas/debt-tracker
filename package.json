@@ -1,0 +1,29 @@
+{
+  "name": "track-my-debt",
+  "version": "1.0.0",
+  "description": "A Telegram bot for tracking debts between friends in group chats",
+  "type": "module",
+  "main": "src/index.ts",
+  "keywords": [
+    "telegram",
+    "bot",
+    "debt",
+    "tracker",
+    "finance",
+    "group",
+    "expense"
+  ],
+  "author": "Rohit Yadav",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.13.2",
+    "dotenv": "^17.2.3",
+    "express": "5.1.0",
+    "mongoose": "^9.0.2"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.0",
+    "@types/node": "20.11.17",
+    "typescript": "5.8.3"
+  }
+}
