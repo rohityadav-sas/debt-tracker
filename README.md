@@ -139,7 +139,7 @@ Using the bot is simple! Just follow these steps:
 ```bash
 # Clone the repository
 git clone https://github.com/rohityadav-sas/debt-tracker.git
-cd track-my-debt
+cd debt-tracker
 
 # Install dependencies
 npm install
