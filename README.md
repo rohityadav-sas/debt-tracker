@@ -138,7 +138,7 @@ Using the bot is simple! Just follow these steps:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/track-my-debt.git
+git clone https://github.com/rohityadav-sas/debt-tracker.git
 cd track-my-debt
 
 # Install dependencies
