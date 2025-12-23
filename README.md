@@ -71,6 +71,31 @@
 
 ---
 
+## 📖 User Guide
+
+Using the bot is simple! Just follow these steps:
+
+1. **Add to Group**: Add the bot to your Telegram group chat.
+2. **Register**: Type `/register` in the group. This creates your profile so you can track debts.
+3. **Add a Debt**: Someone paid for you? Add a debt record!
+
+   > Usage: `/add @User Amount Description`
+
+   _Example:_ if **Alice** paid **$50** for **Bob**'s lunch:
+   Alice types: `/add @Bob 50 Lunch`
+   (This means Bob now owes Alice $50)
+
+4. **Check Balances**: Type `/get` anytime to see who owes who.
+5. **Settle Up**: Paid your friend back? clear the debt!
+
+   > Usage: `/settle @User`
+
+   _Example:_ Bob pays Alice back the $50.
+   Bob types: `/settle @Alice`
+   Alice clicks **"Accept"** on the confirmation message.
+
+---
+
 ## 📱 Commands
 
 | Command     | Description                      | Example                       |
