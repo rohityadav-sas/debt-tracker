@@ -3,10 +3,6 @@ interface IUser {
 	username?: string
 	firstName?: string
 	lastName?: string
-	totalDebt?: {
-		partner: number
-		amount: number
-	}[]
 }
 
 interface IDebt {

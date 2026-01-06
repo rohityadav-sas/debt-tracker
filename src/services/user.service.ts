@@ -15,33 +15,3 @@ export const upsertUser = async (userData: IUser) =>
     userData,
     { upsert: true }
   )
-
-export const getUserByPartner = async (authorId: number, partnerId: number) =>
-  User.findOne({
-    _id: authorId,
-    'totalDebt.partner': partnerId,
-  })
-
-export const adjustDebtWithPartner = async (
-  authorId: number,
-  partnerId: number,
-  amount: number,
-  session?: ClientSession
-) =>
-  User.bulkWrite(
-    [
-      {
-        updateOne: {
-          filter: { _id: authorId, 'totalDebt.partner': partnerId },
-          update: { $inc: { 'totalDebt.$.amount': -amount } },
-        },
-      },
-      {
-        updateOne: {
-          filter: { _id: partnerId, 'totalDebt.partner': authorId },
-          update: { $inc: { 'totalDebt.$.amount': amount } },
-        },
-      },
-    ],
-    { session }
-  )

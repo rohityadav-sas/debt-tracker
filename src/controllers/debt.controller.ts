@@ -8,12 +8,9 @@ import {
   getDebtBetweenUsers,
 } from '../services/debt.service.js'
 import {
-  getUserByPartner,
   getUserByTelegramId,
   getUserByUsername,
-  adjustDebtWithPartner,
 } from '../services/user.service.js'
-import User from '../models/user.model.js'
 import mongoose from 'mongoose'
 import { format, getDisplayName } from '../utils/format.js'
 
@@ -95,43 +92,6 @@ const addDebt = async (update: Telegram.Message) => {
           },
           session
         )
-        const [authorHasDebt, partnerHasDebt] = await Promise.all([
-          getUserByPartner(author[0]._id, partner._id),
-          getUserByPartner(partner._id, author[0]._id),
-        ])
-        if (!authorHasDebt) {
-          await User.updateOne(
-            { _id: author[0]._id },
-            {
-              $push: { totalDebt: { partner: partner._id, amount: amount } },
-            },
-            { session }
-          )
-        } else {
-          await User.updateOne(
-            { _id: author[0]._id, 'totalDebt.partner': partner._id },
-            { $inc: { 'totalDebt.$.amount': amount } },
-            { session }
-          )
-        }
-
-        if (!partnerHasDebt) {
-          await User.updateOne(
-            { _id: partner._id },
-            {
-              $push: {
-                totalDebt: { partner: author[0]._id, amount: -amount },
-              },
-            },
-            { session }
-          )
-        } else {
-          await User.updateOne(
-            { _id: partner._id, 'totalDebt.partner': author[0]._id },
-            { $inc: { 'totalDebt.$.amount': -amount } },
-            { session }
-          )
-        }
       }
     })
   } finally {
@@ -180,7 +140,12 @@ const getDebt = async (update: Telegram.Message) => {
       const name = getDisplayName(debt.partner)
       const amount = debt.amount
       const sign = amount > 0 ? '+' : ''
-      const symbol = amount > 0 ? format.icons.positive : format.icons.negative
+      const symbol =
+        amount === 0
+          ? format.icons.neutral
+          : amount > 0
+            ? format.icons.positive
+            : format.icons.negative
       return `${symbol} ${format.bold(name)} → ${format.code(
         sign + amount.toString()
       )}`
@@ -189,15 +154,20 @@ const getDebt = async (update: Telegram.Message) => {
 
   const totalDebt = debtSummary.reduce((acc, debt) => acc + debt.amount, 0)
   const sign = totalDebt > 0 ? '+' : ''
-  const symbol = totalDebt > 0 ? format.icons.positive : format.icons.negative
+  const symbol =
+    totalDebt === 0
+      ? format.icons.neutral
+      : totalDebt > 0
+        ? format.icons.positive
+        : format.icons.negative
   await bot.sendMessage(
     update.chat.id,
     format.bold(`${format.icons.debt} Debt Summary`) +
-      '\n\n' +
-      message +
-      '\n\n' +
-      `━━━━━━━━━━━━━━━━━━━━━\n` +
-      `${symbol} <b>Total:</b> ${format.code(sign + totalDebt.toString())}`,
+    '\n\n' +
+    message +
+    '\n\n' +
+    `━━━━━━━━━━━━━━━━━━━━━\n` +
+    `${symbol} <b>Total:</b> ${format.code(sign + totalDebt.toString())}`,
     update.message_id
   )
 }
@@ -231,15 +201,19 @@ const getHistory = async (update: Telegram.Message) => {
       const displayAmount = isAuthor ? debt.amount : -debt.amount
       const sign = displayAmount > 0 ? '+' : ''
       const symbol =
-        displayAmount > 0 ? format.icons.positive : format.icons.negative
+        displayAmount === 0
+          ? format.icons.neutral
+          : displayAmount > 0
+            ? format.icons.positive
+            : format.icons.negative
       const date = debt.createdAt
         ? new Date(debt.createdAt)
-            .toLocaleDateString('en-GB', {
-              day: '2-digit',
-              month: 'short',
-              year: 'numeric',
-            })
-            .replace(/ /g, '-')
+          .toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+          })
+          .replace(/ /g, '-')
         : 'N/A'
 
       return (
@@ -325,14 +299,14 @@ const settleDebt = async (update: Telegram.Message) => {
     format.warning(
       'Settlement Request',
       `━━━━━━━━━━━━━━━━━━━━\n\n` +
-        `${format.bold(
-          author[0].firstName
-        )} wants to settle debts with ${format.bold(
-          partner[0].firstName
-        )}.\n\n` +
-        `${format.italic(
-          `${partner[0].firstName}, please confirm this settlement.`
-        )}`
+      `${format.bold(
+        author[0].firstName
+      )} wants to settle debts with ${format.bold(
+        partner[0].firstName
+      )}.\n\n` +
+      `${format.italic(
+        `${partner[0].firstName}, please confirm this settlement.`
+      )}`
     ),
     update.message_id,
     {
@@ -378,9 +352,9 @@ const confirmSettle = async (callbackQuery: Telegram.CallbackQuery) => {
       format.warning(
         'Settlement Cancelled',
         `━━━━━━━━━━━━━━━━━━━━\n\n` +
-          `The settlement request has been cancelled by ${format.bold(
-            getDisplayName(isAuthor ? author : partner)
-          )}.`
+        `The settlement request has been cancelled by ${format.bold(
+          getDisplayName(isAuthor ? author : partner)
+        )}.`
       )
     )
   }
@@ -428,24 +402,17 @@ const confirmSettle = async (callbackQuery: Telegram.CallbackQuery) => {
         session
       )
 
-      await adjustDebtWithPartner(
-        author._id,
-        partner._id,
-        existingAmount,
-        session
-      )
-
       await bot.editMessage(
         callbackQuery.message.chat.id,
         callbackQuery.message.message_id,
         format.success(
           'Settlement Completed',
           `━━━━━━━━━━━━━━━━━━━━\n\n` +
-            `Debts between ${format.bold(
-              getDisplayName(author)
-            )} and ${format.bold(
-              getDisplayName(partner)
-            )} have been settled successfully.`
+          `Debts between ${format.bold(
+            getDisplayName(author)
+          )} and ${format.bold(
+            getDisplayName(partner)
+          )} have been settled successfully.`
         )
       )
     })

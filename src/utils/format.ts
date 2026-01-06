@@ -18,6 +18,7 @@ export const format = {
     user: '👤',
     positive: '🟢',
     negative: '🔴',
+    neutral: '⚪',
   },
 
   success: (title: string, message: string) =>
