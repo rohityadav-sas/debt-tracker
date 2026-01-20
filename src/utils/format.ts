@@ -51,7 +51,7 @@ export const getDisplayName = (user: {
 export const sendProcessingMessage = async (chatId: number, replyToMsgId: number) => {
   return await bot.sendMessage(
     chatId,
-    format.info('Processing', 'Processing your request, please wait...'),
+    '⏳ Processing your request… Please wait.',
     replyToMsgId
   )
 }
