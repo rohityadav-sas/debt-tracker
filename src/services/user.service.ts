@@ -1,4 +1,3 @@
-import { ClientSession } from 'mongoose'
 import User from '../models/user.model.js'
 
 export const getUserByUsername = async (username: string[]) =>
@@ -13,5 +12,5 @@ export const upsertUser = async (userData: IUser) =>
       _id: userData._id,
     },
     userData,
-    { upsert: true }
+    { upsert: true },
   )
