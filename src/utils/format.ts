@@ -1,3 +1,5 @@
+import bot from "../lib/bot.js"
+
 export const format = {
   bold: (text: string) => `<b>${text}</b>`,
   italic: (text: string) => `<i>${text}</i>`,
@@ -44,4 +46,12 @@ export const getDisplayName = (user: {
     return `@${user.username}`
   }
   return `User ${user._id ?? 'Unknown'}`
+}
+
+export const sendProcessingMessage = async (chatId: number, replyToMsgId: number) => {
+  return await bot.sendMessage(
+    chatId,
+    format.info('Processing', 'Processing your request, please wait...'),
+    replyToMsgId
+  )
 }

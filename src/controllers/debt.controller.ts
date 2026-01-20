@@ -12,9 +12,13 @@ import {
   getUserByUsername,
 } from '../services/user.service.js'
 import mongoose from 'mongoose'
-import { format, getDisplayName } from '../utils/format.js'
+import { format, getDisplayName, sendProcessingMessage } from '../utils/format.js'
+
+
+
 
 const addDebt = async (update: Telegram.Message) => {
+  const msgId = await sendProcessingMessage(update.chat.id, update.message_id)
   const chatId = update.chat.id
   const { id } = update.from
   const { users, amount, description } = validateAddDebt(
@@ -24,13 +28,13 @@ const addDebt = async (update: Telegram.Message) => {
   await connectDB()
   const author = await getUserByTelegramId([id])
   if (author.length === 0) {
-    return await bot.sendMessage(
+    return await bot.editMessage(
       chatId,
+      msgId,
       format.warning(
         'Not Registered',
         'You are not registered. Use /register to use the bot.'
-      ),
-      update.message_id
+      )
     )
   }
 
@@ -54,25 +58,24 @@ const addDebt = async (update: Telegram.Message) => {
       ...notFoundTelegramIds.map((u) => u.first_name),
       ...notFoundUsernames,
     ].join(', ')
-
-    return await bot.sendMessage(
+    return await bot.editMessage(
       chatId,
+      msgId,
       format.warning(
         'Users Not Found',
         `The following users are not registered: ${format.bold(
           missingNames
         )} \nTell them to register using /register command`
-      ),
-      update.message_id
+      )
     )
   }
 
   const partners = [...usersByTelegramId, ...usersByUsername]
   if (partners.some((p) => p._id === id)) {
-    return await bot.sendMessage(
+    return await bot.editMessage(
       chatId,
-      format.warning('Invalid Operation', 'You cannot add debt to yourself.'),
-      update.message_id
+      msgId,
+      format.warning('Invalid Operation', 'You cannot add debt to yourself.')
     )
   }
 
@@ -99,39 +102,40 @@ const addDebt = async (update: Telegram.Message) => {
   }
   const formattedPartners = partners.map((p) => getDisplayName(p)).join(', ')
 
-  return await bot.sendMessage(
+  return await bot.editMessage(
     chatId,
+    msgId,
     format.success(
       'Debt Added',
       `Debt added successfully to ${format.bold(formattedPartners)} \n
 ${format.listItem(`Amount: ${format.bold(amount.toString())}`)}
 ${format.listItem(`Description: ${format.italic(description)}`)}`
-    ),
-    update.message_id
+    )
   )
 }
 
 const getDebt = async (update: Telegram.Message) => {
+  const msgId = await sendProcessingMessage(update.chat.id, update.message_id)
   await connectDB()
   const author = await getUserByTelegramId([update.from.id])
   if (author.length === 0) {
-    return await bot.sendMessage(
+    return await bot.editMessage(
       update.chat.id,
+      msgId,
       format.warning(
         'Not Registered',
         'You are not registered. Use /register to use the bot.'
-      ),
-      update.message_id
+      )
     )
   }
 
   const debtSummary = await getDebtSummary(author[0]._id, update.chat.id)
 
   if (debtSummary.length === 0) {
-    return await bot.sendMessage(
+    return await bot.editMessage(
       update.chat.id,
-      format.info('No Debts', 'No debts found in this group.'),
-      update.message_id
+      msgId,
+      format.info('No Debts', 'No debts found in this group.')
     )
   }
 
@@ -160,36 +164,37 @@ const getDebt = async (update: Telegram.Message) => {
       : totalDebt > 0
         ? format.icons.positive
         : format.icons.negative
-  await bot.sendMessage(
+  await bot.editMessage(
     update.chat.id,
+    msgId,
     format.bold(`${format.icons.debt} Debt Summary`) +
     '\n\n' +
     message +
     '\n\n' +
     `━━━━━━━━━━━━━━━━━━━━━\n` +
-    `${symbol} <b>Total:</b> ${format.code(sign + totalDebt.toString())}`,
-    update.message_id
+    `${symbol} <b>Total:</b> ${format.code(sign + totalDebt.toString())}`
   )
 }
 const getHistory = async (update: Telegram.Message) => {
+  const msgId = await sendProcessingMessage(update.chat.id, update.message_id)
   await connectDB()
   const author = await getUserByTelegramId([update.from.id])
   if (author.length === 0) {
-    return await bot.sendMessage(
+    return await bot.editMessage(
       update.chat.id,
+      msgId,
       format.warning(
         'Not Registered',
         'You are not registered. Use /register to use the bot.'
-      ),
-      update.message_id
+      )
     )
   }
   const debts = await getDebts(author[0]._id, update.chat.id)
   if (debts.length === 0) {
-    return await bot.sendMessage(
+    return await bot.editMessage(
       update.chat.id,
-      format.info('No History', 'No debt history found.'),
-      update.message_id
+      msgId,
+      format.info('No History', 'No debt history found.')
     )
   }
 
@@ -224,14 +229,15 @@ const getHistory = async (update: Telegram.Message) => {
     })
     .join('\n\n')
 
-  await bot.sendMessage(
+  await bot.editMessage(
     update.chat.id,
-    format.bold(`${format.icons.history} Debt History`) + '\n\n' + message,
-    update.message_id
+    msgId,
+    format.bold(`${format.icons.history} Debt History`) + '\n\n' + message
   )
 }
 
 const settleDebt = async (update: Telegram.Message) => {
+  const msgId = await sendProcessingMessage(update.chat.id, update.message_id)
   const result = validateSettleDebt(update.text, update.entities)
 
   if (!result) return
@@ -243,37 +249,34 @@ const settleDebt = async (update: Telegram.Message) => {
     username ? getUserByUsername([username]) : getUserByTelegramId([userId]),
   ])
   if (author.length === 0) {
-    return await bot.sendMessage(
+    return await bot.editMessage(
       update.chat.id,
+      msgId,
       format.warning(
         'Not Registered',
         'You are not registered. Use /register to use the bot.'
-      ),
-      update.message_id
+      )
     )
   }
 
   if (partner.length === 0) {
-    return await bot.sendMessage(
+    return await bot.editMessage(
       update.chat.id,
+      msgId,
       format.warning(
         'User Not Found',
         `${format.bold(
           `@${username}` || 'The mentioned user'
         )} is not registered. Tell them to register using /register command`
-      ),
-      update.message_id
+      )
     )
   }
 
   if (partner[0]._id === author[0]._id) {
-    return await bot.sendMessage(
+    return await bot.editMessage(
       update.chat.id,
-      format.warning(
-        'Invalid Operation',
-        'You cannot settle debt with yourself.'
-      ),
-      update.message_id
+      msgId,
+      format.warning('Invalid Operation', 'You cannot settle debt with yourself.')
     )
   }
 
@@ -284,19 +287,52 @@ const settleDebt = async (update: Telegram.Message) => {
   )
 
   if (existingDebt === 0) {
-    return await bot.sendMessage(
+    return await bot.editMessage(
       update.chat.id,
+      msgId,
       format.info(
         'Already Settled',
         'Debts are already settled or no debts exist between you two in this group.'
-      ),
-      update.message_id
+      )
     )
   }
 
-  await bot.sendMessage(
+  // await bot.sendMessage(
+  //   update.chat.id,
+  //   format.warning(
+  //     'Settlement Request',
+  //     `━━━━━━━━━━━━━━━━━━━━\n\n` +
+  //     `${format.bold(
+  //       author[0].firstName
+  //     )} wants to settle debts with ${format.bold(
+  //       partner[0].firstName
+  //     )}.\n\n` +
+  //     `${format.italic(
+  //       `${partner[0].firstName}, please confirm this settlement.`
+  //     )}`
+  //   ),
+  //   update.message_id,
+  //   {
+  //     reply_markup: {
+  //       inline_keyboard: [
+  //         [
+  //           {
+  //             text: '✅ Confirm',
+  //             callback_data: `settle_confirm:${author[0]._id}_${partner[0]._id}`,
+  //           },
+  //           {
+  //             text: '❌ Cancel',
+  //             callback_data: `settle_cancel:${author[0]._id}_${partner[0]._id}`,
+  //           },
+  //         ],
+  //       ],
+  //     },
+  //   }
+  // )
+  return await bot.editMessage(
     update.chat.id,
-    format.warning(
+    msgId,
+    format.info(
       'Settlement Request',
       `━━━━━━━━━━━━━━━━━━━━\n\n` +
       `${format.bold(
@@ -308,7 +344,6 @@ const settleDebt = async (update: Telegram.Message) => {
         `${partner[0].firstName}, please confirm this settlement.`
       )}`
     ),
-    update.message_id,
     {
       reply_markup: {
         inline_keyboard: [
@@ -322,8 +357,8 @@ const settleDebt = async (update: Telegram.Message) => {
               callback_data: `settle_cancel:${author[0]._id}_${partner[0]._id}`,
             },
           ],
-        ],
-      },
+        ]
+      }
     }
   )
 }
