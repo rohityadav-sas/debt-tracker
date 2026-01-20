@@ -9,12 +9,13 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?logo=mongodb&logoColor=white)](https://mongoosejs.com/)
 [![Vercel](https://img.shields.io/badge/Deploy-Vercel-black?logo=vercel&logoColor=white)](https://vercel.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Website](https://img.shields.io/badge/Website-Live-brightgreen?logo=vercel&logoColor=white)](https://track-my-debt.vercel.app)
 
 ---
 
 **Never forget who owes who!** Track debts effortlessly in your Telegram group chats with automatic calculations, settlement confirmations, and beautiful formatted messages.
 
-[Features](#-features) • [Commands](#-commands) • [Setup](#-setup) • [Architecture](#-architecture) • [Contributing](#-contributing)
+[Website](https://track-my-debt.vercel.app) • [Features](#-features) • [Commands](#-commands) • [Setup](#-setup) • [Architecture](#-architecture) • [Contributing](#-contributing)
 
 </div>
 
@@ -164,7 +165,7 @@ Configure your bot to receive updates via webhook:
 ```bash
 curl -X POST "https://api.telegram.org/bot<BOT_TOKEN>/setWebhook" \
   -H "Content-Type: application/json" \
-  -d '{"url": "https://your-domain.com/webhook"}'
+  -d '{"url": "https://track-my-debt.vercel.app/webhook"}'
 ```
 
 ### Deploy to Vercel
@@ -218,7 +219,7 @@ interface IUser {
       // Running balance per partner
       partner: number
       amount: number // +ve = owed to you, -ve = you owe
-    }
+    },
   ]
 }
 
