@@ -18,13 +18,13 @@ import { format, getDisplayName, sendProcessingMessage } from '../utils/format.j
 
 
 const addDebt = async (update: Telegram.Message) => {
-  const msgId = await sendProcessingMessage(update.chat.id, update.message_id)
   const chatId = update.chat.id
   const { id } = update.from
   const { users, amount, description } = validateAddDebt(
     update.text,
     update.entities
   )
+  const msgId = await sendProcessingMessage(update.chat.id, update.message_id)
   await connectDB()
   const author = await getUserByTelegramId([id])
   if (author.length === 0) {
@@ -303,12 +303,12 @@ const settleDebt = async (update: Telegram.Message) => {
   //     'Settlement Request',
   //     `━━━━━━━━━━━━━━━━━━━━\n\n` +
   //     `${format.bold(
-  //       author[0].firstName
+  //       getDisplayName(author[0])
   //     )} wants to settle debts with ${format.bold(
-  //       partner[0].firstName
+  //       getDisplayName(partner[0])
   //     )}.\n\n` +
   //     `${format.italic(
-  //       `${partner[0].firstName}, please confirm this settlement.`
+  //       `${getDisplayName(partner[0])}, please confirm this settlement.`
   //     )}`
   //   ),
   //   update.message_id,
@@ -336,12 +336,12 @@ const settleDebt = async (update: Telegram.Message) => {
       'Settlement Request',
       `━━━━━━━━━━━━━━━━━━━━\n\n` +
       `${format.bold(
-        author[0].firstName
+        getDisplayName(author[0])
       )} wants to settle debts with ${format.bold(
-        partner[0].firstName
+        getDisplayName(partner[0])
       )}.\n\n` +
       `${format.italic(
-        `${partner[0].firstName}, please confirm this settlement.`
+        `${getDisplayName(partner[0])}, please confirm this settlement.`
       )}`
     ),
     {
